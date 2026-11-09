@@ -1,5 +1,6 @@
-import enum
+
 import uuid
+from enum import StrEnum
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
@@ -22,7 +23,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base
 
 
-class PaymentStatus(str, enum.Enum):
+class PaymentStatus(StrEnum):
     """Available payment statuses."""
 
     PENDING = "pending"
@@ -30,7 +31,7 @@ class PaymentStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-class PaymentCurrency(str, enum.Enum):
+class PaymentCurrency(StrEnum):
     """Supported payment currencies."""
 
     RUB = "RUB"

@@ -1,4 +1,5 @@
 from functools import lru_cache
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,9 +18,12 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
 
-    api_key: SecretStr = SecretStr("secret")
+    api_key: str = "development-secret-key"
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/payments"
+    database_url: str = (
+        "postgresql+asyncpg://payment_user:payment_password"
+        "@127.0.0.1:5433/payment_service"
+    )
 
     rabbitmq_url: SecretStr = SecretStr("amqp://guest:guest@localhost:5672/")
 

@@ -26,7 +26,7 @@ The project is under active development.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/payment-processing-service.git
+git clone https://github.com/senkuunluck/payment-processing-service.git
 cd payment-processing-service
 ```
 

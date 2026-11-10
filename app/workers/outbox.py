@@ -1,4 +1,3 @@
-
 import asyncio
 import logging
 
@@ -44,7 +43,6 @@ class OutboxWorker:
         finally:
             self._running = False
             logger.info("Outbox worker stopped")
-
 
     async def process_batch(self) -> int:
         """Publish one batch of Outbox events."""

@@ -23,8 +23,16 @@ class PaymentCreate(BaseModel):
     webhook_url: HttpUrl
 
 
+class PaymentCreatedResponse(BaseModel):
+    """Response returned after accepting a payment."""
+
+    payment_id: UUID
+    status: PaymentStatus
+    created_at: datetime
+
+
 class PaymentResponse(BaseModel):
-    """Schema returned to the API client."""
+    """Detailed payment response."""
 
     model_config = ConfigDict(from_attributes=True)
 

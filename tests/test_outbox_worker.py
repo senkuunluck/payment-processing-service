@@ -1,11 +1,10 @@
-
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from contextlib import asynccontextmanager
+
 from app.core.config import Settings
 from app.workers.outbox import OutboxWorker
-
 
 
 @pytest.fixture
@@ -54,15 +53,14 @@ def worker_dependencies(
     return worker, session_factory, session, outbox_service, transaction_calls
 
 
-
 def test_worker_initialization(
-        worker_dependencies: tuple[
-            OutboxWorker,
-            MagicMock,
-            MagicMock,
-            AsyncMock,
-            MagicMock,
-        ],
+    worker_dependencies: tuple[
+        OutboxWorker,
+        MagicMock,
+        MagicMock,
+        AsyncMock,
+        MagicMock,
+    ],
 ) -> None:
     worker, _, _, _, _ = worker_dependencies
 
@@ -73,13 +71,13 @@ def test_worker_initialization(
 
 @pytest.mark.asyncio
 async def test_process_batch(
-        worker_dependencies: tuple[
-            OutboxWorker,
-            MagicMock,
-            MagicMock,
-            AsyncMock,
-            MagicMock,
-        ],
+    worker_dependencies: tuple[
+        OutboxWorker,
+        MagicMock,
+        MagicMock,
+        AsyncMock,
+        MagicMock,
+    ],
 ) -> None:
     worker, session_factory, _, outbox_service, transaction_calls = worker_dependencies
 
@@ -93,13 +91,13 @@ async def test_process_batch(
 
 @pytest.mark.asyncio
 async def test_process_empty_batch(
-        worker_dependencies: tuple[
-            OutboxWorker,
-            MagicMock,
-            MagicMock,
-            AsyncMock,
-            MagicMock,
-        ],
+    worker_dependencies: tuple[
+        OutboxWorker,
+        MagicMock,
+        MagicMock,
+        AsyncMock,
+        MagicMock,
+    ],
 ) -> None:
     worker, _, _, outbox_service, _ = worker_dependencies
     outbox_service.publish_batch.return_value = 0

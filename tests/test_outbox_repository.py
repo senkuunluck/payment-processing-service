@@ -1,6 +1,6 @@
-import pytest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.outbox import Outbox
@@ -22,7 +22,7 @@ async def test_get_unpublished_returns_only_unpublished_events(
     published_event = Outbox(
         event_type="payment.created",
         payload={"payment_id": "payment-2"},
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
 
     db_session.add_all([unpublished_event, published_event])
@@ -42,7 +42,7 @@ async def test_get_unpublished_respects_limit(
 
     repository = OutboxRepository(db_session)
 
-    base_time = datetime.now(timezone.utc)
+    base_time = datetime.now(UTC)
 
     events = [
         Outbox(

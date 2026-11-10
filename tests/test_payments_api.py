@@ -41,16 +41,15 @@ async def test_create_payment(
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == 202
 
     data = response.json()
 
-    assert data["amount"] == "1250.50"
-    assert data["currency"] == "RUB"
-    assert data["description"] == "Test payment"
-    assert data["metadata"] == {"order_id": "order-123"}
+    assert data["payment_id"] is not None
     assert data["status"] == "pending"
-    assert data["id"] is not None
+    assert data["created_at"] is not None
+    assert "id" not in data
+    assert "amount" not in data
 
 
 @pytest.mark.asyncio
@@ -68,7 +67,9 @@ async def test_get_payment(
         },
     )
 
-    payment_id = create_response.json()["id"]
+    assert create_response.status_code == 202
+
+    payment_id = create_response.json()["payment_id"]
 
     response = await client.get(
         f"/api/v1/payments/{payment_id}",
@@ -77,6 +78,8 @@ async def test_get_payment(
 
     assert response.status_code == 200
     assert response.json()["id"] == payment_id
+    assert response.json()["amount"] == "1250.50"
+    assert response.json()["currency"] == "RUB"
 
 
 @pytest.mark.asyncio
@@ -102,10 +105,10 @@ async def test_idempotency_with_same_data(
         headers=headers,
     )
 
-    assert first_response.status_code == 201
-    assert second_response.status_code == 201
+    assert first_response.status_code == 202
+    assert second_response.status_code == 202
 
-    assert first_response.json()["id"] == second_response.json()["id"]
+    assert first_response.json()["payment_id"] == second_response.json()["payment_id"]
 
 
 @pytest.mark.asyncio
@@ -136,7 +139,7 @@ async def test_idempotency_with_different_data(
         headers=headers,
     )
 
-    assert first_response.status_code == 201
+    assert first_response.status_code == 202
     assert second_response.status_code == 409
 
 

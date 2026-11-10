@@ -1,5 +1,5 @@
-
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -11,54 +11,73 @@ from app.db.session import async_session_factory
 from app.messaging.rabbit_publisher import RabbitMQPublisher
 from app.workers.outbox import OutboxWorker
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
-    """Manage application resources during startup and shutdown."""
+    rabbit_url = settings.rabbitmq_url.get_secret_value()
+
     rabbit_publisher = RabbitMQPublisher(
-        url=settings.rabbitmq_url.get_secret_value(),
-    )
-    await rabbit_publisher.start()
-
-    worker = OutboxWorker(
-        session_factory=async_session_factory,
-        message_publisher=rabbit_publisher,
-        settings=settings,
+        url=rabbit_url,
+        queue_name=settings.payment_queue_name,
     )
 
-    worker_task = asyncio.create_task(
-        worker.run(),
-        name="outbox-worker",
-    )
-
-    application.state.rabbit_publisher = rabbit_publisher
-    application.state.outbox_worker = worker
-    application.state.outbox_worker_task = worker_task
+    publisher_started = False
+    worker_task: asyncio.Task[None] | None = None
 
     try:
+        await rabbit_publisher.start()
+        publisher_started = True
+
+        worker = OutboxWorker(
+            session_factory=async_session_factory,
+            message_publisher=rabbit_publisher,
+            settings=settings,
+        )
+
+        worker_task = asyncio.create_task(
+            worker.run(),
+            name="outbox-worker",
+        )
+
+        application.state.rabbit_publisher = rabbit_publisher
+
+        logger.info("Payment API started.")
         yield
+
     finally:
-        worker_task.cancel()
+        if worker_task is not None:
+            worker_task.cancel()
 
-        try:
-            await worker_task
-        except asyncio.CancelledError:
-            pass
+            try:
+                await worker_task
+            except asyncio.CancelledError:
+                logger.info("Outbox worker stopped.")
 
-        await rabbit_publisher.stop()
+        if publisher_started:
+            await rabbit_publisher.stop()
+
+        logger.info("Payment API stopped.")
 
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Asynchronous payment processing service",
     debug=settings.debug,
     lifespan=lifespan,
 )
 
-app.include_router(payments_router, prefix="/api/v1")
+app.include_router(
+    payments_router,
+    prefix="/api/v1",
+)
 
 
 @app.get("/health", tags=["Health"])

@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.outbox import Outbox
-from app.models.payment import Payment, PaymentCurrency, PaymentStatus
+from app.models.payment import Payment, PaymentStatus
 from app.repositories.payment import PaymentRepository
 from app.schemas.payment import PaymentCreate
 

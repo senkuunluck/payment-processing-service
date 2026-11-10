@@ -9,7 +9,7 @@ class RabbitMQPublisher:
     def __init__(
         self,
         url: str,
-        queue_name: str = "payment_events",
+        queue_name: str = "payments.new",
     ) -> None:
         self.broker = RabbitBroker(url)
         self.queue = RabbitQueue(

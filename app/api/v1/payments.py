@@ -7,9 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import require_api_key
 from app.db.session import get_session
 from app.repositories.payment import PaymentRepository
-from app.schemas.payment import PaymentCreate, PaymentResponse
+from app.schemas.payment import (
+    PaymentCreate,
+    PaymentCreatedResponse,
+    PaymentResponse,
+)
 from app.services.payment import IdempotencyConflictError, PaymentService
-
 
 router = APIRouter(
     prefix="/payments",
@@ -20,8 +23,8 @@ router = APIRouter(
 
 @router.post(
     "",
-    response_model=PaymentResponse,
-    status_code=status.HTTP_201_CREATED,
+    response_model=PaymentCreatedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def create_payment(
     data: PaymentCreate,
@@ -30,8 +33,8 @@ async def create_payment(
         Header(alias="Idempotency-Key", min_length=1, max_length=255),
     ],
     session: Annotated[AsyncSession, Depends(get_session)],
-) -> PaymentResponse:
-    """Create a new payment."""
+) -> PaymentCreatedResponse:
+    """Accept a new payment for asynchronous processing."""
 
     service = PaymentService(session)
 
@@ -43,7 +46,11 @@ async def create_payment(
             detail=str(exc),
         ) from exc
 
-    return PaymentResponse.model_validate(payment)
+    return PaymentCreatedResponse(
+        payment_id=payment.id,
+        status=payment.status,
+        created_at=payment.created_at,
+    )
 
 
 @router.get(

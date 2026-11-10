@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.messaging.protocols import MessagePublisher
 from app.repositories.outbox import OutboxRepository
 
-
 logger = logging.getLogger(__name__)
 
 

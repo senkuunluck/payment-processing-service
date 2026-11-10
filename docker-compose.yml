@@ -20,6 +20,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: payment_rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: payment_user
+      RABBITMQ_DEFAULT_PASS: payment_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 volumes:
   postgres_data:
+  rabbitmq_data:

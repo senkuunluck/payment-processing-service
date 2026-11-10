@@ -1,4 +1,3 @@
-
 import asyncio
 from uuid import uuid4
 
@@ -33,16 +32,13 @@ async def cleanup_payment(idempotency_key: str) -> None:
     async with async_session_factory() as session:
         async with session.begin():
             payment = await session.scalar(
-                select(Payment).where(
-                    Payment.idempotency_key == idempotency_key
-                )
+                select(Payment).where(Payment.idempotency_key == idempotency_key)
             )
 
             if payment is not None:
                 await session.execute(
                     delete(Outbox).where(
-                        Outbox.payload["payment_id"].as_string()
-                        == str(payment.id)
+                        Outbox.payload["payment_id"].as_string() == str(payment.id)
                     )
                 )
                 await session.delete(payment)
@@ -62,16 +58,11 @@ async def test_create_payment_and_outbox() -> None:
             payment_id = payment.id
 
         async with async_session_factory() as session:
-            saved_payment = await session.scalar(
-                select(Payment).where(Payment.id == payment_id)
-            )
+            saved_payment = await session.scalar(select(Payment).where(Payment.id == payment_id))
             outbox_count = await session.scalar(
                 select(func.count())
                 .select_from(Outbox)
-                .where(
-                    Outbox.payload["payment_id"].as_string()
-                    == str(payment_id)
-                )
+                .where(Outbox.payload["payment_id"].as_string() == str(payment_id))
             )
 
         assert saved_payment is not None
@@ -107,10 +98,7 @@ async def test_repeated_request_returns_existing_payment() -> None:
             outbox_count = await session.scalar(
                 select(func.count())
                 .select_from(Outbox)
-                .where(
-                    Outbox.payload["payment_id"].as_string()
-                    == str(first_id)
-                )
+                .where(Outbox.payload["payment_id"].as_string() == str(first_id))
             )
 
         assert outbox_count == 1
@@ -161,17 +149,12 @@ async def test_concurrent_requests_create_one_payment() -> None:
 
         async with async_session_factory() as session:
             payment_count = await session.scalar(
-                select(func.count())
-                .select_from(Payment)
-                .where(Payment.idempotency_key == key)
+                select(func.count()).select_from(Payment).where(Payment.idempotency_key == key)
             )
             outbox_count = await session.scalar(
                 select(func.count())
                 .select_from(Outbox)
-                .where(
-                    Outbox.payload["payment_id"].as_string()
-                    == str(first.id)
-                )
+                .where(Outbox.payload["payment_id"].as_string() == str(first.id))
             )
 
         assert payment_count == 1
